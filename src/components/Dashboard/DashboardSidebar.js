@@ -68,7 +68,7 @@ const sections = [
           },
           {
             title: 'Edit',
-            path: '/dashboard/customers/1/edit'
+            path: '/dashboard/customer/edit/1'
           }
         ]
       },
@@ -87,7 +87,7 @@ const sections = [
           },
           {
             title: 'Update',
-            path: '/dashboard/products/update'
+            path: '/dashboard/products/update/54'
           },
         ]
       },
@@ -102,7 +102,7 @@ const sections = [
           },
           {
             title: 'Details',
-            path: '/dashboard/orders/1'
+            path: '/dashboard/order/edit/2'
           }
         ]
       },

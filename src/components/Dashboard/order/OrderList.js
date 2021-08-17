@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link as RouterLink} from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Box, Breadcrumbs, Button, Container, Grid, Link, Typography } from '@material-ui/core';
 // import { productApi } from '../../__fakeApi__/productApi';
-import { ProductListTable } from './';
+import { ProductListTable } from '.';
 // import useMounted from '../../hooks/useMounted';
 // import useSettings from '../../hooks/useSettings';
 import ChevronRightIcon from '../../../icons/ChevronRight';
@@ -12,14 +12,14 @@ import UploadIcon from '../../../icons/Upload';
 import PlusIcon from '../../../icons/Plus';
 import gtm from '../../../lib/gtm';
 import myApi from '../../../axios'
-import EnhancedTable from './table';
-import FlexLayoutGrid from './table2';
+import EnhancedTable from './OrderTable';
+// import FlexLayoutGrid from './table2';
 
-const ProductList = () => {
+const OrderList = () => {
   // const mounted = useMounted();
   // const { settings } = useSettings();
   // const [products, setProducts] = useState([]);
-
+  
   useEffect(() => {
     gtm.push({ event: 'page_view' });
   }, []);
@@ -67,7 +67,7 @@ const ProductList = () => {
                 color="textPrimary"
                 variant="h5"
               >
-                Product List
+                Order List
               </Typography>
               <Breadcrumbs
                 aria-label="breadcrumb"
@@ -149,4 +149,4 @@ const ProductList = () => {
   );
 };
 
-export default ProductList;
+export default OrderList;

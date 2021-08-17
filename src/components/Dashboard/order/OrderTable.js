@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { Link as RouterLink,useNavigate,useParams } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { lighten, makeStyles } from '@material-ui/core/styles';
+
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -22,18 +23,37 @@ import Switch from '@material-ui/core/Switch';
 import DeleteIcon from '@material-ui/icons/Delete';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import EditIcon from '@material-ui/icons/Edit';
+import Box from '@material-ui/core/Box';
 import Alert from '@material-ui/lab/Alert';
 import myApi from '../../../axios'
+import Label from '../Label'
 import './table.css'
-
-import Notification from '../../../utils/Notification';
-import ConfirmDialogBox from '../../../utils/ConfirmDialogBox';
 
 
 function createData(name, calories, fat, carbs, protein) {
   return { name, calories, fat, carbs, protein };
 }
 
+const getInventoryLabel = (inventoryType) => {
+  const map = {
+    P: {
+      text: 'Paid',
+      color: 'success'
+    },
+    N: {
+      text: 'Not Paid',
+      color: 'warning'
+    }
+  };
+
+  const { text, color } = map[inventoryType];
+
+  return (
+    <Label color={color}>
+      {text}
+    </Label>
+  );
+};
 // const rows = [
 //   createData('Cupcake', 305, 3.7, 67, 4.3),
 //   createData('Donut', 452, 25.0, 51, 4.9),
@@ -88,13 +108,13 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'name', numeric: false, disablePadding: true, label: 'Name' },
-  { id: 'product_image', numeric: false, disablePadding: false, label: 'Image' },
-  { id: 'price', numeric: true, disablePadding: false, label: 'Price' },
-  { id: 'sale_price', numeric: true, disablePadding: false, label: 'Sale Price' },
-  { id: 'stoke', numeric: true, disablePadding: false, label: 'Stoke' },
-  { id: 'product_type', numeric: false, disablePadding: false, label: 'ProductType' },
-  { id: 'action', numeric: false, disablePadding: false, label: 'Actions',Selection:false },
+  { id: 'product_name', numeric: false, disablePadding: true, label: 'Product Name' },
+  { id: 'product_id', numeric: true, disablePadding: true, label: 'ProductId' },
+  { id: 'total_amount', numeric: true, disablePadding: true, label: 'TotalAmount' },
+  { id: 'status', numeric: true, disablePadding: true, label: 'Status' },
+  { id: 'transaction_id', numeric: true, disablePadding: false, label: 'TransactionId' },
+  { id: 'order_date', numeric: false, disablePadding: false, label: 'OrderDate' },
+  { id: 'action', numeric: false, disablePadding: false, label: 'Actions' },
 ];
 
 function EnhancedTableHead(props) {
@@ -172,20 +192,18 @@ const useToolbarStyles = makeStyles((theme) => ({
   },
 }));
 
-
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
   const { numSelected } = props;
 
   return (
     <Toolbar
-    style={{backgroundColor:"#ffffff"}}
       className={clsx(classes.root, {
         [classes.highlight]: numSelected > 0,
       })}
     >
       {numSelected > 0 ? (
-        <Typography className={classes.title} color="inherit" variant="subtitle1"  component="div">
+        <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
           {numSelected} selected
         </Typography>
       ) : (
@@ -196,7 +214,7 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={()=>{props.del()}}>
+          <IconButton aria-label="delete">
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -239,7 +257,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
 export default function EnhancedTable(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState('asc');
@@ -251,79 +268,39 @@ export default function EnhancedTable(props) {
   const [msgText,setMsgText] = React.useState("")
   const [msg,setMsg] = React.useState(false)
   const [msgType,setMsgType]= React.useState("")
-  const [rows, setProducts] = React.useState([])
-
-
-  const [confirmDialog, setConfirmDialog] = React.useState({ isOpen: false, title: '', subTitle: '' })
-  const [notify,setNotify] = React.useState({isOpen:false,message:'',type:''})
-  const navigate = useNavigate();
-
-
-  var deleteMultipleProduct = () =>{
-     
-    async function orders(){
-      try{
-        const data = myApi.delete("/api/store_detail/bulk_product_delete/",{data:{ids:selected}})
-        selected.map((id)=>{
-          setProducts((item)=>{
-            return item.filter((curItem)=>{
-              return curItem.id !== id
-            })
-          })
-        })
-        // setProducts((item)=>{
-        //   return item.filter((curItem)=>{
-        //     return curItem.id !== order_id
-        //   })
-        // })
-        navigate("/dashboard/products/")
-      }catch(err){
-        alert(err)
-      }
-    }
-    orders()
-  }
+  const [rows, setOrders] = React.useState([])
 
 
   React.useEffect(() => {
-    async function products(){
+    async function orders(){
       try{
-        const prds = await myApi.get('/api/store_detail/store_product/')
-        setProducts(prds.data)
+        const prds = await myApi.get('/api/store_detail/orders/')
+        setOrders(prds.data)
         console.log(rows)
       }catch(err){
         alert(err)
       }
     }
-    products()
+    orders()
   }, []);
 
 
-  const deleteProduct = (id) =>{
-    setConfirmDialog({
-      ...confirmDialog,
-      isOpen: false
-  })
-    const data = myApi.delete("/api/store_detail/store_product/",{data:{product_id:id}})
-    setProducts((item)=>{
+  const deleteOrder = (order_id) =>{
+    const data = myApi.delete("/api/store_detail/orders/",{data:{id:order_id}})
+    setOrders((item)=>{
       return item.filter((curItem)=>{
-        return curItem.id !== id
+        return curItem.id !== order_id
       })
     })
-    setNotify({
-      isOpen:true,
-      message:'Product deleted successfully',
-      type:'success'
-    })
-    console.log(data,id)
+    // console.log(data,id)
     // setMsgText("Product Deleted Successfully")
     // setMsg(true)
     // setMsgType("success")
-    // setTimeout(() => {
-    //   setMsg(false)
-    //   setMsgText("")
-    //   setMsgType("")
-    // }, 2000);
+    setTimeout(() => {
+      // setMsg(false)
+      // setMsgText("")
+      // setMsgType("")
+    }, 2000);
   }
 
   const handleRequestSort = (event, property) => {
@@ -334,7 +311,7 @@ export default function EnhancedTable(props) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.id);
+      const newSelecteds = rows.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -380,7 +357,7 @@ export default function EnhancedTable(props) {
     {msg?<Alert severity={msgType}>{msgText}</Alert>:""}
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <EnhancedTableToolbar  del={deleteMultipleProduct}  numSelected={selected.length} />
+        {/* <EnhancedTableToolbar   numSelected={selected.length} /> */}
         <TableContainer>
           <Table
             className={classes.table}
@@ -421,27 +398,26 @@ export default function EnhancedTable(props) {
                         />
                       </TableCell>
                       <TableCell component="th" id={labelId} scope="row" padding="none">
-                        {row.name}
+                        {row.product_name}
                       </TableCell>
-                      <TableCell align="right"><img src={"http://127.0.0.1:4000"+row.image} width='100px' /></TableCell>
-                      <TableCell align="right">{row.price}</TableCell>
-                      <TableCell align="right">{row.sale_price}</TableCell>
-                      <TableCell align="right">{row.stock == null?'null':row.stock}</TableCell>
-                      <TableCell align="right">{row.product_type == null?"null":row.product_type}</TableCell>
-                      {/* <TableCell align="right"><IconButton onClick={()=>{ deleteProduct(row.id) }} aria-label="delete"> */}
-                      <TableCell align="right"><IconButton onClick={()=>{ 
-                          setConfirmDialog({
-                            isOpen: true,
-                            title: 'Are you sure to delete this customer?',
-                            subTitle: "You can't undo this operation",
-                            onConfirm: () => { deleteProduct(row.id) }
-                        })
-                  
-                         }} aria-label="delete">
+                      <TableCell align="right">{row.product_id}</TableCell>
+                      <TableCell align="right">{row.total_amount}</TableCell>
+                      {/* <TableCell align="right">{row.status}</TableCell> */}
+                      <TableCell align="right">
+                        {getInventoryLabel(row.status)}
+                        {/* {row.status=='N'?<Label color='danger'></Label>:"ok"} */}
+                        {/* {
+                          row.status == "N"?<Label color="danger">"NOT PAID"</Label>:<Label color="success">"PAID"</Label>
+                        } */}
+                      </TableCell>
+                      <TableCell align="right">{row.transaction_id}</TableCell>
+
+                      <TableCell align="right">{new Date(row.order_date).toLocaleString()}</TableCell>
+                      <TableCell align="right"><IconButton onClick={()=>{ deleteOrder(row.id) }} aria-label="delete">
         <DeleteIcon />
         
       </IconButton>
-      <RouterLink to={`/dashboard/products/update/${row.id}`}>
+      <RouterLink to={`/dashboard/order/edit/${row.id}`}>
 
       <IconButton aria-label="delete">
         <EditIcon />
@@ -472,15 +448,6 @@ export default function EnhancedTable(props) {
       <FormControlLabel
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
-      />
-
-      <ConfirmDialogBox
-                      confirmDialog={confirmDialog}
-                      setConfirmDialog={setConfirmDialog}
-      />
-      <Notification 
-        notify={notify}
-        setNotify={setNotify}
       />
     </div>
     </>
