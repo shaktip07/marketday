@@ -29,9 +29,6 @@ import myApi from '../../../axios'
 import Label from '../Label'
 import './table.css'
 import ArrowRightIcon from '../../../icons/ArrowRight';
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import Notification from '../../../utils/Notification';
-import ConfirmDialogBox from '../../../utils/ConfirmDialogBox';
 
 
 
@@ -45,7 +42,65 @@ const useRowStyles = makeStyles({
     },
   },
 });
+function Row(props) {
+  const { row } = props;
+  const [open, setOpen] = React.useState(false);
+  const classes = useRowStyles();
 
+  return (
+    <React.Fragment>
+      <TableRow className={classes.root}>
+        <TableCell>
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {row.index}
+        </TableCell>
+        <TableCell align="right">{row.product_id}</TableCell>
+        <TableCell align="right">{row.price}</TableCell>
+        <TableCell align="right">{row.quantity}</TableCell>
+        {/* <TableCell align="right">{row.protein}</TableCell> */}
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box margin={1}>
+              <Typography variant="h6" gutterBottom component="div">
+                History
+              </Typography>
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>SNO</TableCell>
+                    <TableCell>Product Id</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="right">Quantity</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {row.history.map((historyRow,index) => (
+                    <TableRow key={historyRow.date}>
+                      <TableCell component="th" scope="row">
+                        {index}
+                      </TableCell>
+                      <TableCell>{historyRow.product_id}</TableCell>
+                      <TableCell align="right">{historyRow.price}</TableCell>
+                      <TableCell align="right">
+                        {historyRow.quantity}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  );
+}
 
 
 
@@ -143,12 +198,12 @@ function stableSort(array, comparator) {
 
 const headCells = [
   { id: 'total_amount', numeric: true, disablePadding: false, label: 'TotalAmount' },
-  { id: 'payment_type', numeric: false, disablePadding: false, label: 'Payment Type' },
+  { id: 'payment_type', numeric: false, disablePadding: true, label: 'Payment Type' },
   { id: 'payment_status', numeric: false, disablePadding: true, label: 'Payment Status' },
   { id: 'delivery_status', numeric: false, disablePadding: true, label: 'Delivery Status' },
   { id: 'order_date', numeric: true, disablePadding: false, label: 'OrderDate' },
-  // { id: 'address', numeric: false, disablePadding: false, label: 'Address' },
-  { id: 'action', numeric: false, disablePadding: false, label: 'Actions' },
+  { id: 'address', numeric: false, disablePadding: true, label: 'Address' },
+  { id: 'action', numeric: false, disablePadding: true, label: 'Actions' },
 ];
 
 function EnhancedTableHead(props) {
@@ -160,7 +215,6 @@ function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell/>
         <TableCell padding="checkbox">
           <Checkbox
             indeterminate={numSelected > 0 && numSelected < rowCount}
@@ -305,8 +359,6 @@ export default function EnhancedTable(props) {
   const [msgType,setMsgType]= React.useState("")
   const [rows, setOrders] = React.useState([])
 
-  const [confirmDialog, setConfirmDialog] = React.useState({ isOpen: false, title: '', subTitle: '' })
-  const [notify,setNotify] = React.useState({isOpen:false,message:'',type:''})
 
   React.useEffect(() => {
     async function orders(){
@@ -323,22 +375,11 @@ export default function EnhancedTable(props) {
 
 
   const deleteOrder = (order_id) =>{
-
-      setConfirmDialog({
-        ...confirmDialog,
-        isOpen: false
-    })
-    const data = myApi.delete("/api/store_detail/order/",{data:{id:order_id}})
+    const data = myApi.delete("/api/store_detail/orders/",{data:{id:order_id}})
     setOrders((item)=>{
       return item.filter((curItem)=>{
         return curItem.id !== order_id
       })
-    })
-    
-    setNotify({
-      isOpen:true,
-      message:'Order deleted successfully',
-      type:'success'
     })
     // console.log(data,id)
     // setMsgText("Product Deleted Successfully")
@@ -400,92 +441,6 @@ export default function EnhancedTable(props) {
   const isSelected = (name) => selected.indexOf(name) !== -1;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
-
-
-
-  
-  function Row(props) {
-    const { row } = props;
-    const [open, setOpen] = React.useState(false);
-    const classes = useRowStyles();
-   
-    return (
-      <React.Fragment>
-        <TableRow className={classes.root}>
-          <TableCell>
-            <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          </TableCell>
-          {/* <TableRow > */}
-            <TableCell hover onClick={(event) => handleClick(event, row.id)} role="checkbox" aria-checked={isSelected(row.id)} tabIndex={-1} key={row.id} selected={isSelected(row.id)} padding="checkbox"><Checkbox checked={isSelected(row.id)}inputProps={{ 'aria-labelledby': `enhanced-table-checkbox-${row.index}` }}/></TableCell>
-            <TableCell component="th" id={`enhanced-table-checkbox-${row.id}`} scope="row"  align="right" >{row.total_amount}</TableCell>
-            <TableCell align="right">{row.payment_type}</TableCell>
-            <TableCell align="right">{row.payment_status == "N"?<Label color="error">NOT PAID</Label>:<Label color="success">PAID</Label>}</TableCell>
-            <TableCell align="right">{row.delivery_status == "P"?<Label color="warning">PENDING</Label>:<Label color="success">DELIVERED</Label>}</TableCell>
-            <TableCell align="right">{new Date(row.order_date).toLocaleString()}</TableCell>
-            {/* <TableCell align="right">{row.address.city}</TableCell> */}
-            <TableCell align="right"><IconButton onClick={()=>{ 
-               setConfirmDialog({
-                isOpen: true,
-                title: 'Are you sure to delete this customer?',
-                subTitle: "You can't undo this operation",
-                onConfirm: () => { deleteOrder(row.id) }
-            })
-              // deleteOrder(row.id)
-               }} aria-label="delete"><DeleteIcon /></IconButton>
-            <RouterLink to={`/dashboard/order/edit/${row.id}`}><IconButton aria-label="delete"><EditIcon /></IconButton></RouterLink>
-            <IconButton component={RouterLink} to={`/dashboard/order/${row.id}`} ><VisibilityIcon fontSize="small" /></IconButton>
-            </TableCell>
-        </TableRow>
-          {/* </TableRow> */}
-        <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
-            <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box margin={1}>
-                <Typography variant="h6" gutterBottom component="div" style={{backgroundColor:'#'}}>
-                  CartItems
-                </Typography>
-                <Table size="small" aria-label="purchases">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>SNO</TableCell>
-                      <TableCell>Product Id</TableCell>
-                      <TableCell align="right">Price</TableCell>
-                      <TableCell align="right">Quantity</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {row.items.map((historyRow,index) => (
-                      <TableRow key={historyRow.cart_order}>
-                        <TableCell component="th" scope="row">
-                          {index+1}
-                        </TableCell>
-                        {/* <TableCell>{historyRow.items.price}</TableCell> */}
-                        <TableCell align="right">{historyRow.product_id}</TableCell>
-                        <TableCell align="right">
-                          {historyRow.price}
-                        </TableCell>
-                        <TableCell align="right">
-                          {historyRow.quantity}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Box>
-            </Collapse>
-          </TableCell>
-        </TableRow>
-      </React.Fragment>
-    );
-  }
-
-
-
-
-
-
   return (
     <>
     {msg?<Alert severity={msgType}>{msgText}</Alert>:""}
@@ -499,6 +454,7 @@ export default function EnhancedTable(props) {
             size={dense ? 'small' : 'medium'}
             aria-label="enhanced table"
           >
+             <TableCell />
             <EnhancedTableHead style={{backgroundColor:'#3f51b5'}}
               classes={classes}
               numSelected={selected.length}
@@ -516,20 +472,64 @@ export default function EnhancedTable(props) {
                   const labelId = `enhanced-table-checkbox-${index}`;
 
                   return (
-                    // <TableRow hover onClick={(event) => handleClick(event, row.id)} role="checkbox" aria-checked={isItemSelected} tabIndex={-1} key={row.id} selected={isItemSelected}>
-                    //   <TableCell padding="checkbox"><Checkbox checked={isItemSelected}inputProps={{ 'aria-labelledby': labelId }}/></TableCell>
-                    //   <TableCell component="th" id={labelId} scope="row"  align="right" >{row.total_amount}</TableCell>
-                    //   <TableCell align="right">{row.payment_type}</TableCell>
-                    //   <TableCell align="right">{row.payment_status == "N"?<Label color="error">NOT PAID</Label>:<Label color="success">PAID</Label>}</TableCell>
-                    //   <TableCell align="right">{row.delivery_status == "P"?<Label color="warning">PENDING</Label>:<Label color="success">DELIVERED</Label>}</TableCell>
-                    //   <TableCell align="right">{new Date(row.order_date).toLocaleString()}</TableCell>
-                    //   <TableCell align="right">{row.address.city}</TableCell>
-                    //   <TableCell align="right"><IconButton onClick={()=>{ deleteOrder(row.id) }} aria-label="delete"><DeleteIcon /></IconButton>
-                    //  <RouterLink to={`/dashboard/order/edit/${row.id}`}><IconButton aria-label="delete"><EditIcon /></IconButton></RouterLink>
-                    //   <IconButton component={RouterLink} to={`/dashboard/customers/${row.id}`} ><ArrowRightIcon fontSize="small" /></IconButton>
-                    //   </TableCell>
-                    // </TableRow>
-                    <Row row={row} />
+                    
+                    <TableRow
+                      hover
+                      onClick={(event) => handleClick(event, row.id)}
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row.id}
+                      selected={isItemSelected}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={isItemSelected}
+                          inputProps={{ 'aria-labelledby': labelId }}
+                        />
+                      </TableCell>
+                      <TableCell component="th" id={labelId} scope="row"  align="right" >
+                        {row.total_amount}
+                      </TableCell>
+                      {/* <TableCell  align="right">{row.product_id}</TableCell> */}
+                      {/* <TableCell align="right">{row.total_amount}</TableCell> */}
+                      <TableCell align="right">{row.payment_type}</TableCell>
+                      {/* <TableCell align="right">{row.status}</TableCell> */}
+                      <TableCell align="right">
+                        {/* {getInventoryLabel(row.status)} */}
+                         {
+                          row.payment_status == "N"?<Label color="error">NOT PAID</Label>:<Label color="success">PAID</Label>
+                        }
+                        {/* {row.status=='N'?<Label color='danger'></Label>:"ok"} */}
+                        {/* {
+                          row.status == "N"?<Label color="danger">"NOT PAID"</Label>:<Label color="success">"PAID"</Label>
+                        } */}
+                      </TableCell>
+                      <TableCell align="right">
+        
+                         {
+                          row.delivery_status == "P"?<Label color="warning">PENDING</Label>:<Label color="success">DELIVERED</Label>
+                        }
+    
+                      </TableCell>
+
+                      <TableCell align="right">{new Date(row.order_date).toLocaleString()}</TableCell>
+                      <TableCell align="right">{row.address.city}</TableCell>
+                      <TableCell align="right"><IconButton onClick={()=>{ deleteOrder(row.id) }} aria-label="delete">
+        <DeleteIcon />
+        
+      </IconButton>
+      <RouterLink to={`/dashboard/order/edit/${row.id}`}>
+
+      <IconButton aria-label="delete">
+        <EditIcon />
+      </IconButton>
+      </RouterLink>
+      <IconButton component={RouterLink} to={`/dashboard/customers/${row.id}`} >
+         <ArrowRightIcon fontSize="small" />
+      </IconButton>
+      </TableCell>
+                    </TableRow>
                   );
                 })}
               {emptyRows > 0 && (
@@ -553,15 +553,6 @@ export default function EnhancedTable(props) {
       <FormControlLabel
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
-      />
-
-<ConfirmDialogBox
-                      confirmDialog={confirmDialog}
-                      setConfirmDialog={setConfirmDialog}
-      />
-      <Notification 
-        notify={notify}
-        setNotify={setNotify}
       />
     </div>
     </>

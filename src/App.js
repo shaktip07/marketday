@@ -10,6 +10,7 @@ import ProductUpdate from './components/Dashboard/product/ProductUpdate'
 import CustomerList from './components/Dashboard/customer/CustomerList'
 import CustomerEditForm from './components/Dashboard/customer/CustomerEditForm'
 import OrderList from './components/Dashboard/order/OrderList'
+import OrderViewForm from './components/Dashboard/order/OrderViewForm.js';
 import OrderEditForm from './components/Dashboard/order/OrderEditForm'
 import CustomerDetails from './components/Dashboard/customer/CustomerDetails.js'
 
@@ -60,6 +61,9 @@ function App() {
                 {/* Order Route Mapping */}
                 <Route exact path="/dashboard/orders" element={<DashboardLayout />}>
                     <ProtectedUrl comp={OrderList} />
+                </Route>
+                <Route exact path="/dashboard/order/:id" element={<DashboardLayout />}>
+                    <ProtectedUrl comp={OrderViewForm} />
                 </Route>
 
                 <Route exact path="/dashboard/order/edit/:id" element={<DashboardLayout />}>

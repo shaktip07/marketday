@@ -13,14 +13,13 @@ import ConfirmDialogBox from '../../../utils/ConfirmDialogBox';
 
 const OrderEditForm = (props) => {
   const { customer, ...other } = props;
-  const [address,setAddress] = useState({country:'',city:"",state:"",address:"",address2:"",mobile:"",name:"",pin_code:""})
-  const [deliveryStatus,setDeliveryStatus] = useState("")
-  const [orderDate,setOrderDate] = useState()
-  const [paymentStatus,setPaymentStatus] = useState("")
-  const [paymentType,setPaymentType] = useState("")
-  const [totalAmount,setTotalAmount] = useState("")
-  const [addressId,setAddressId] = useState()
-  // const [user,setUser] = useState()
+  const [productName,setProductName] = useState("")
+  const [productId,setProductId] = useState(0)
+  const [totalAmount,setTotalAmount] = useState(0)
+  const [status,setStatus] = useState()
+  const [transactionId,setTransactionId] = useState("")
+  const [orderDate,setOrderDate] = useState("")
+  const [user,setUser] = useState()
   const [confirmDialog, setConfirmDialog] = React.useState({ isOpen: false, title: '', subTitle: '' })
   const [notify,setNotify] = React.useState({isOpen:false,message:'',type:''})
   const navigate = useNavigate();
@@ -35,16 +34,15 @@ const OrderEditForm = (props) => {
   console.log(prm.id,"prm")
   async function get_current_data(){
     try{
-      const data = await myApi.get('/api/store_detail/order/',{params:{id:prm.id}})
+      const data = await myApi.get('/api/store_detail/orders/',{params:{id:prm.id}})
       console.log(data)
-      // setAddress(data.data.address)
-      setDeliveryStatus(data.data.delivery_status)
-      setOrderDate(data.data.order_date)
-      setPaymentStatus(data.data.payment_status)
-      setPaymentType(data.data.payment_type)
+      setProductName(data.data.product_name)
+      setProductId(data.data.product_id)
+      setStatus(data.data.status)
       setTotalAmount(data.data.total_amount)
-      // setAddressId(data.data.address.id)
-      // setOrderDate(data.data.order_date)
+      setTransactionId(data.data.transaction_id)
+      setUser(data.data.user)
+      setOrderDate(data.data.order_date)
       // setDiscountInPercentage(data.data.discount_in_percentage)
       // setCategory(data.data.category)
       // setStock(data.data.stock)
@@ -60,16 +58,13 @@ const OrderEditForm = (props) => {
     try{
       let formFieldData = new FormData()
       // formFieldData.append('product_name',productName)
-      const ad = JSON.stringify(address)
-      formFieldData.append('address',ad)
-      formFieldData.append('delivery_status',deliveryStatus)
-      formFieldData.append('payment_status',paymentStatus)
-      formFieldData.append('payment_type',paymentType)
+      formFieldData.append('product_id',productId)
       formFieldData.append('total_amount',totalAmount)
-      formFieldData.append("address_id",addressId)
+      formFieldData.append('status',status)
+      formFieldData.append('transaction_id',transactionId)
       // formFieldData.append('user',user)
       // formFieldData.append('id',prm.id)
-      const order = await myApi.put(`/api/store_detail/order_update/${prm.id}/`,formFieldData)
+      const order = await myApi.put(`/api/store_detail/order_Update/${prm.id}/`,formFieldData)
       // console.log(pr)
       setNotify({
         isOpen:true,
@@ -157,13 +152,12 @@ const OrderEditForm = (props) => {
                     // error={Boolean(touched.name && errors.name)}
                     fullWidth
                     // helperText={touched.name && errors.name}
-                    label="Total Amount"
-                    name="total_amount"
+                    label="Product Name"
+                    name="product_name"
                     // onBlur={handleBlur}
-                    type="number"
-                    onChange={(e)=>{setTotalAmount(e.target.value)}}
+                    onChange={(e)=>{setProductName(e.target.value)}}
                     required
-                    value={totalAmount}
+                    value={productName}
                     variant="outlined"
                   />
                 </Grid>
@@ -176,12 +170,12 @@ const OrderEditForm = (props) => {
                     // error={Boolean(touched.email && errors.email)}
                     fullWidth
                     // helperText={touched.email && errors.email}
-                    label="Payment Type"
-                    name="payment_type"
+                    label="Product Id"
+                    name="product_id"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setPaymentType(e.target.value)}}
+                    onChange={(e)=>{setProductId(e.target.value)}}
                     required
-                    value={paymentType}
+                    value={productId}
                     variant="outlined"
                   />
                 </Grid>
@@ -194,20 +188,14 @@ const OrderEditForm = (props) => {
                     // error={Boolean(touched.country && errors.country)}
                     fullWidth
                     // helperText={touched.country && errors.country}
-                    label="Payment Status"
-                    name="payment_status"
-                    select
-                    SelectProps={{ native: true }}
+                    label="Total Amount"
+                    name="total_amount"
                     // onBlur={handleBlur}
                     required
-                    onChange={(e)=>{setPaymentStatus(e.target.value)}}
-                    value={paymentStatus}
+                    onChange={(e)=>{setTotalAmount(e.target.value)}}
+                    value={totalAmount}
                     variant="outlined"
-                    
-                  >
-                    <option  value="P" >PAID </option>
-                    <option  value="N" >UNPAID </option>
-                  </TextField>
+                  />
                 </Grid>
                 <Grid
                   item
@@ -228,19 +216,19 @@ const OrderEditForm = (props) => {
                   /> */}
                   <TextField
                       fullWidth
-                      label="Delivery Status"
-                      name="delivery_status"
+                      label="Status"
+                      name="status"
                       select
                       SelectProps={{ native: true }}
-                      value={deliveryStatus}
+                      value={status}
                       variant="outlined"
                       onChange={(e)=>{
-                        setDeliveryStatus(e.target.value)
+                        setStatus(e.target.value)
                         console.log(e.target.value,"target")}}
                         
                         >      
-                        <option  value="P" >PENDING </option>
-                        <option  value="D" >DELIVERED </option>
+                        <option  value="P" >PAID </option>
+                        <option  value="N" >UNPAID </option>
                     </TextField>
                 </Grid>
                 <Grid
@@ -252,16 +240,16 @@ const OrderEditForm = (props) => {
                     // error={Boolean(touched.address1 && errors.address1)}
                     fullWidth
                     // helperText={touched.address1 && errors.address1}
-                    label="Order Date"
-                    name="order_date"
+                    label="Transaction Id"
+                    name="transaction_id"
                     required
                     // onBlur={handleBlur}
-                    value={orderDate}
+                    onChange={(e)=>{setTransactionId(e.target.value)}}
+                    value={transactionId}
                     variant="outlined"
-                    readOnly
                   />
                 </Grid>
-                {/* <Grid
+                <Grid
                   item
                   md={6}
                   xs={12}
@@ -296,10 +284,8 @@ const OrderEditForm = (props) => {
                     variant="outlined"
                     readOnly
                   />
-                </Grid> */}
+                </Grid>
                 <Grid item />
-
-                
                 <Grid
                   item
                   md={6}
@@ -356,174 +342,7 @@ const OrderEditForm = (props) => {
                     // value={values.hasDiscountedPrices}
                   />
                 </Grid> */}
-
-                
-                <Grid
-                  item
-                  md={12}
-                  xs={12}
-                >
-                  
-              {/* <Typography
-                color="textPrimary"
-                
-                // style={{borderBottom:"2px solid #9fa0a1",display:"inline"}}
-                variant="h5"
-                >
-                Address Details :
-              </Typography> */}
-                </Grid>
-              
-
-                {/* <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    
-                    fullWidth
-                    
-                    label="Country"
-                    name="country"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,country:e.target.value})}}
-                    
-                    value={address.country}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="State"
-                    name="state"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,state:e.target.value})}}
-                    // required
-                    value={address.state}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="City"
-                    name="city"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,city:e.target.value})}}
-                    // required
-                    value={address.city}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="Address"
-                    name="address"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,address:e.target.value})}}
-                    // required
-                    value={address.address}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="Address2"
-                    name="address2"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,address2:e.target.value})}}
-                    // required
-                    value={address.address2}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="Mobile"
-                    name="mobile"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,mobile:e.target.value})}}
-                    // required
-                    value={address.mobile}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="Name"
-                    name="name"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,name:e.target.value})}}
-                    // required
-                    value={address.name}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  md={6}
-                  xs={12}
-                >
-                  <TextField
-                    // error={Boolean(touched.email && errors.email)}
-                    fullWidth
-                    // helperText={touched.email && errors.email}
-                    label="Pin Code"
-                    name="pincode"
-                    onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,pin_code:e.target.value})}}
-                    // required
-                    value={address.pin_code}
-                    variant="outlined"
-                  />
-                </Grid> */}
-
               </Grid>
-
-
-
               <Box sx={{ mt: 2 }}>
               <Button
                 color="warning"

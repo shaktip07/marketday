@@ -8,10 +8,11 @@ import { Formik } from 'formik';
 import { Box, Button, Card, Grid, Switch, TextField, Typography } from '@material-ui/core';
 import wait from '../../../utils/wait';
 
+
 import Notification from '../../../utils/Notification';
 import ConfirmDialogBox from '../../../utils/ConfirmDialogBox';
 
-const OrderEditForm = (props) => {
+const OrderViewForm = (props) => {
   const { customer, ...other } = props;
   const [address,setAddress] = useState({country:'',city:"",state:"",address:"",address2:"",mobile:"",name:"",pin_code:""})
   const [deliveryStatus,setDeliveryStatus] = useState("")
@@ -37,7 +38,7 @@ const OrderEditForm = (props) => {
     try{
       const data = await myApi.get('/api/store_detail/order/',{params:{id:prm.id}})
       console.log(data)
-      // setAddress(data.data.address)
+      setAddress(data.data.address)
       setDeliveryStatus(data.data.delivery_status)
       setOrderDate(data.data.order_date)
       setPaymentStatus(data.data.payment_status)
@@ -57,30 +58,30 @@ const OrderEditForm = (props) => {
     }
   }
   async function updateOrderApi(){
-    try{
-      let formFieldData = new FormData()
-      // formFieldData.append('product_name',productName)
-      const ad = JSON.stringify(address)
-      formFieldData.append('address',ad)
-      formFieldData.append('delivery_status',deliveryStatus)
-      formFieldData.append('payment_status',paymentStatus)
-      formFieldData.append('payment_type',paymentType)
-      formFieldData.append('total_amount',totalAmount)
-      formFieldData.append("address_id",addressId)
-      // formFieldData.append('user',user)
-      // formFieldData.append('id',prm.id)
-      const order = await myApi.put(`/api/store_detail/order_update/${prm.id}/`,formFieldData)
-      // console.log(pr)
-      setNotify({
-        isOpen:true,
-        message:'Order Updated successfully Go back',
-        type:'success'
-      })
-      // navigate("/dashboard/orders/")  
-      // setCategoryList(pt.data)
-    }catch(err){
-      alert(err)
-    }
+    // try{
+    //   let formFieldData = new FormData()
+    //   // formFieldData.append('product_name',productName)
+    //   const ad = JSON.stringify(address)
+    //   formFieldData.append('address',ad)
+    //   formFieldData.append('delivery_status',deliveryStatus)
+    //   formFieldData.append('payment_status',paymentStatus)
+    //   formFieldData.append('payment_type',paymentType)
+    //   formFieldData.append('total_amount',totalAmount)
+    //   formFieldData.append("address_id",addressId)
+    //   // formFieldData.append('user',user)
+    //   // formFieldData.append('id',prm.id)
+    //   const order = await myApi.put(`/api/store_detail/order_update/${prm.id}/`,formFieldData)
+    //   // console.log(pr)
+    //   setNotify({
+    //     isOpen:true,
+    //     message:'Order Updated successfully Go back',
+    //     type:'success'
+    //   })
+    //   // navigate("/dashboard/orders/")  
+    //   // setCategoryList(pt.data)
+    // }catch(err){
+    //   alert(err)
+    // }
   }
   useEffect(()=>{
     get_current_data()
@@ -143,11 +144,31 @@ const OrderEditForm = (props) => {
           // {...other}
         >
           <Card>
+            
+
             <Box sx={{ p: 3 }}>
+            <Grid
+                    item
+                    md={12}
+                    xs={12}
+                    
+                    >
+                    
+            <Typography
+                color="textPrimary"
+                
+                // style={{borderBottom:"2px solid #9fa0a1",display:"inline"}}
+                variant="h5"
+                >
+                Order View :
+              </Typography>
+            </Grid>
+
               <Grid
                 container
                 spacing={3}
               >
+                  
                 <Grid
                   item
                   md={6}
@@ -161,7 +182,8 @@ const OrderEditForm = (props) => {
                     name="total_amount"
                     // onBlur={handleBlur}
                     type="number"
-                    onChange={(e)=>{setTotalAmount(e.target.value)}}
+                    readOnly
+                    // onChange={(e)=>{setTotalAmount(e.target.value)}}
                     required
                     value={totalAmount}
                     variant="outlined"
@@ -179,8 +201,9 @@ const OrderEditForm = (props) => {
                     label="Payment Type"
                     name="payment_type"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setPaymentType(e.target.value)}}
-                    required
+                    readOnly
+                    // onChange={(e)=>{setPaymentType(e.target.value)}}
+                    // required
                     value={paymentType}
                     variant="outlined"
                   />
@@ -199,8 +222,10 @@ const OrderEditForm = (props) => {
                     select
                     SelectProps={{ native: true }}
                     // onBlur={handleBlur}
-                    required
-                    onChange={(e)=>{setPaymentStatus(e.target.value)}}
+                    // required
+                    readOnly
+                    // onChange={(e)=>{setPaymentStatus(e.target.value)}}
+                    
                     value={paymentStatus}
                     variant="outlined"
                     
@@ -234,9 +259,10 @@ const OrderEditForm = (props) => {
                       SelectProps={{ native: true }}
                       value={deliveryStatus}
                       variant="outlined"
-                      onChange={(e)=>{
-                        setDeliveryStatus(e.target.value)
-                        console.log(e.target.value,"target")}}
+                      readOnly
+                    //   onChange={(e)=>{
+                    //     setDeliveryStatus(e.target.value)
+                    //     console.log(e.target.value,"target")}}
                         
                         >      
                         <option  value="P" >PENDING </option>
@@ -364,31 +390,32 @@ const OrderEditForm = (props) => {
                   xs={12}
                 >
                   
-              {/* <Typography
+              <Typography
                 color="textPrimary"
                 
                 // style={{borderBottom:"2px solid #9fa0a1",display:"inline"}}
                 variant="h5"
                 >
                 Address Details :
-              </Typography> */}
+              </Typography>
                 </Grid>
               
 
-                {/* <Grid
+                <Grid
                   item
                   md={6}
                   xs={12}
                 >
                   <TextField
-                    
+                    // error={Boolean(touched.email && errors.email)}
                     fullWidth
-                    
+                    // helperText={touched.email && errors.email}
                     label="Country"
                     name="country"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,country:e.target.value})}}
-                    
+                    // onChange={(e)=>{setAddress({...address,country:e.target.value})}}
+                    // required
+                    readOnly
                     value={address.country}
                     variant="outlined"
                   />
@@ -405,8 +432,9 @@ const OrderEditForm = (props) => {
                     label="State"
                     name="state"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,state:e.target.value})}}
+                    // onChange={(e)=>{setAddress({...address,state:e.target.value})}}
                     // required
+                    readOnly
                     value={address.state}
                     variant="outlined"
                   />
@@ -422,8 +450,9 @@ const OrderEditForm = (props) => {
                     // helperText={touched.email && errors.email}
                     label="City"
                     name="city"
+                    readOnly
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,city:e.target.value})}}
+                    // onChange={(e)=>{setAddress({...address,city:e.target.value})}}
                     // required
                     value={address.city}
                     variant="outlined"
@@ -441,7 +470,9 @@ const OrderEditForm = (props) => {
                     label="Address"
                     name="address"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,address:e.target.value})}}
+                    readOnly
+                    
+                    // onChange={(e)=>{setAddress({...address,address:e.target.value})}}
                     // required
                     value={address.address}
                     variant="outlined"
@@ -459,7 +490,8 @@ const OrderEditForm = (props) => {
                     label="Address2"
                     name="address2"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,address2:e.target.value})}}
+                    readOnly
+                    // onChange={(e)=>{setAddress({...address,address2:e.target.value})}}
                     // required
                     value={address.address2}
                     variant="outlined"
@@ -477,7 +509,8 @@ const OrderEditForm = (props) => {
                     label="Mobile"
                     name="mobile"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,mobile:e.target.value})}}
+                    readOnly
+                    // onChange={(e)=>{setAddress({...address,mobile:e.target.value})}}
                     // required
                     value={address.mobile}
                     variant="outlined"
@@ -495,7 +528,7 @@ const OrderEditForm = (props) => {
                     label="Name"
                     name="name"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,name:e.target.value})}}
+                    // onChange={(e)=>{setAddress({...address,name:e.target.value})}}
                     // required
                     value={address.name}
                     variant="outlined"
@@ -513,12 +546,14 @@ const OrderEditForm = (props) => {
                     label="Pin Code"
                     name="pincode"
                     onBlur={handleBlur}
-                    onChange={(e)=>{setAddress({...address,pin_code:e.target.value})}}
+                    // onChange={(e)=>{setAddress({...address,pin_code:e.target.value})}}
+                    
+
                     // required
                     value={address.pin_code}
                     variant="outlined"
                   />
-                </Grid> */}
+                </Grid>
 
               </Grid>
 
@@ -534,7 +569,7 @@ const OrderEditForm = (props) => {
               >
                 Go back
               </Button> 
-
+{/* 
                 <Button
                   style={{marginLeft:"5px"}}
                   color="success"
@@ -543,7 +578,7 @@ const OrderEditForm = (props) => {
                   variant="contained"
                 >
                   Update Order
-                </Button>
+                </Button> */}
               </Box>
             </Box>
           </Card>
@@ -565,4 +600,4 @@ const OrderEditForm = (props) => {
 //   customer: PropTypes.object.isRequired
 // };
 
-export default OrderEditForm;
+export default OrderViewForm;
